@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Kitchen Mockup - Design Your Perfect Kitchen</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1>Kitchen Design Studio</h1>
+                <p>Visualize your dream kitchen in real-time</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Canvas Area -->
+            <div class="canvas-section">
+                <div class="canvas-wrapper">
+                    <canvas id="kitchenCanvas" width="800" height="600"></canvas>
+                    <div class="canvas-overlay">
+                        <button class="btn btn-primary" id="exportBtn">Export Design</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <section class="control-group">
+                    <h2>Wall Customization</h2>
+                    
+                    <div class="control-item">
+                        <label for="wallColorPicker">Wall Color:</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="wallColorPicker" value="#f5f5f5" class="color-input">
+                            <span class="color-value" id="colorValue">#f5f5f5</span>
+                        </div>
+                    </div>
+
+                    <div class="control-item">
+                        <label for="textureSelect">Wall Texture:</label>
+                        <select id="textureSelect" class="select-input">
+                            <option value="none">None</option>
+                            <option value="wood">Wood Grain</option>
+                            <option value="tile">Subway Tile</option>
+                            <option value="marble">Marble</option>
+                            <option value="paint">Matte Paint</option>
+                        </select>
+                    </div>
+
+                    <div class="control-item">
+                        <label for="textureOpacity">Texture Opacity:</label>
+                        <input type="range" id="textureOpacity" min="0" max="100" value="100" class="slider">
+                        <span class="slider-value" id="opacityValue">100%</span>
+                    </div>
+                </section>
+
+                <section class="control-group">
+                    <h2>Lighting</h2>
+                    
+                    <div class="control-item">
+                        <label for="lightingIntensity">Brightness:</label>
+                        <input type="range" id="lightingIntensity" min="0" max="200" value="100" class="slider">
+                        <span class="slider-value" id="brightnessValue">100%</span>
+                    </div>
+                </section>
+
+                <section class="control-group">
+                    <h2>AI Design Assistant</h2>
+                    <button class="btn btn-secondary" id="aiSuggestBtn">Get Design Suggestions</button>
+                    <div class="ai-suggestions" id="aiSuggestions" style="display: none;">
+                        <p id="suggestionText"></p>
+                    </div>
+                </section>
+
+                <section class="control-group">
+                    <h2>Actions</h2>
+                    <button class="btn btn-outline" id="resetBtn">Reset Design</button>
+                    <button class="btn btn-success" id="shareBtn">Share Demo</button>
+                </section>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2025 Kitchen Design Studio. Design your perfect space.</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
