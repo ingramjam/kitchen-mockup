@@ -3,89 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Kitchen Mockup - Design Your Perfect Kitchen</title>
+    <title>Luxe Kitchen Designer - Premium Kitchen Visualization</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <h1>Kitchen Design Studio</h1>
-                <p>Visualize your dream kitchen in real-time</p>
+    <div class="designer-app">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="navbar-content">
+                <div class="logo">
+                    <span class="logo-icon">◇</span>
+                    <h1>Luxe Kitchen</h1>
+                </div>
+                <p class="tagline">Premium Kitchen Design Studio</p>
             </div>
-        </header>
+        </nav>
 
-        <main class="main-content">
-            <!-- Canvas Area -->
-            <div class="canvas-section">
-                <div class="canvas-wrapper">
-                    <canvas id="kitchenCanvas" width="800" height="600"></canvas>
-                    <div class="canvas-overlay">
-                        <button class="btn btn-primary" id="exportBtn">Export Design</button>
+        <main class="designer-main">
+            <!-- Preview Area -->
+            <section class="preview-section">
+                <div class="preview-header">
+                    <h2>Your Kitchen Design</h2>
+                    <div class="preview-controls">
+                        <button class="icon-btn" id="resetViewBtn" title="Reset View">↺</button>
                     </div>
                 </div>
-            </div>
+                <div class="canvas-container">
+                    <canvas id="kitchenCanvas" width="1000" height="700"></canvas>
+                </div>
+                <div class="canvas-actions">
+                    <button class="btn btn-lg btn-primary" id="exportBtn">
+                        <span class="btn-icon">⬇</span> Download Design
+                    </button>
+                    <button class="btn btn-lg btn-secondary" id="shareBtn">
+                        <span class="btn-icon">↗</span> Share Design
+                    </button>
+                </div>
+            </section>
 
-            <!-- Control Panel -->
-            <div class="control-panel">
-                <section class="control-group">
-                    <h2>Wall Customization</h2>
-                    
-                    <div class="control-item">
-                        <label for="wallColorPicker">Wall Color:</label>
-                        <div class="color-picker-wrapper">
-                            <input type="color" id="wallColorPicker" value="#f5f5f5" class="color-input">
-                            <span class="color-value" id="colorValue">#f5f5f5</span>
+            <!-- Customization Sidebar -->
+            <aside class="customization-panel">
+                <div class="panel-header">
+                    <h3>Design Studio</h3>
+                </div>
+
+                <!-- Cabinetry Section -->
+                <section class="panel-section">
+                    <div class="section-header">
+                        <h4>🚪 Cabinetry</h4>
+                    </div>
+                    <div class="options-grid">
+                        <label class="option-card">
+                            <input type="radio" name="cabinetStyle" value="modern" checked>
+                            <span class="option-label">Modern</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="cabinetStyle" value="traditional">
+                            <span class="option-label">Traditional</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="cabinetStyle" value="transitional">
+                            <span class="option-label">Transitional</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="cabinetStyle" value="contemporary">
+                            <span class="option-label">Contemporary</span>
+                        </label>
+                    </div>
+
+                    <div class="slider-control">
+                        <label>Cabinet Color</label>
+                        <div class="color-options">
+                            <button class="color-swatch" data-cabinet-color="#2c2c2c" style="background: #2c2c2c; border: 2px solid #666" title="Charcoal"></button>
+                            <button class="color-swatch" data-cabinet-color="#5c4033" style="background: #5c4033" title="Espresso"></button>
+                            <button class="color-swatch" data-cabinet-color="#8b7355" style="background: #8b7355" title="Walnut"></button>
+                            <button class="color-swatch" data-cabinet-color="#d4a574" style="background: #d4a574" title="Natural Oak"></button>
+                            <button class="color-swatch" data-cabinet-color="#f5f5f5" style="background: #f5f5f5; border: 1px solid #ccc" title="White"></button>
+                            <button class="color-swatch" data-cabinet-color="#e8d5b7" style="background: #e8d5b7" title="Cream"></button>
+                            <button class="color-swatch" data-cabinet-color="#2d5016" style="background: #2d5016" title="Sage Green"></button>
+                            <button class="color-swatch" data-cabinet-color="#1a1a3e" style="background: #1a1a3e" title="Navy"></button>
                         </div>
                     </div>
-
-                    <div class="control-item">
-                        <label for="textureSelect">Wall Texture:</label>
-                        <select id="textureSelect" class="select-input">
-                            <option value="none">None</option>
-                            <option value="wood">Wood Grain</option>
-                            <option value="tile">Subway Tile</option>
-                            <option value="marble">Marble</option>
-                            <option value="paint">Matte Paint</option>
-                        </select>
-                    </div>
-
-                    <div class="control-item">
-                        <label for="textureOpacity">Texture Opacity:</label>
-                        <input type="range" id="textureOpacity" min="0" max="100" value="100" class="slider">
-                        <span class="slider-value" id="opacityValue">100%</span>
-                    </div>
                 </section>
 
-                <section class="control-group">
-                    <h2>Lighting</h2>
-                    
-                    <div class="control-item">
-                        <label for="lightingIntensity">Brightness:</label>
-                        <input type="range" id="lightingIntensity" min="0" max="200" value="100" class="slider">
-                        <span class="slider-value" id="brightnessValue">100%</span>
+                <!-- Countertop Section -->
+                <section class="panel-section">
+                    <div class="section-header">
+                        <h4>⬜ Countertops</h4>
+                    </div>
+                    <div class="options-grid">
+                        <label class="option-card">
+                            <input type="radio" name="countertop" value="granite" checked>
+                            <span class="option-label">Granite</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="countertop" value="quartz">
+                            <span class="option-label">Quartz</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="countertop" value="marble">
+                            <span class="option-label">Marble</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="countertop" value="wood">
+                            <span class="option-label">Butcher Block</span>
+                        </label>
                     </div>
                 </section>
 
-                <section class="control-group">
-                    <h2>AI Design Assistant</h2>
-                    <button class="btn btn-secondary" id="aiSuggestBtn">Get Design Suggestions</button>
-                    <div class="ai-suggestions" id="aiSuggestions" style="display: none;">
-                        <p id="suggestionText"></p>
+                <!-- Backsplash Section -->
+                <section class="panel-section">
+                    <div class="section-header">
+                        <h4>🧱 Backsplash</h4>
+                    </div>
+                    <div class="options-grid">
+                        <label class="option-card">
+                            <input type="radio" name="backsplash" value="subway" checked>
+                            <span class="option-label">Subway Tile</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="backsplash" value="herringbone">
+                            <span class="option-label">Herringbone</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="backsplash" value="glass">
+                            <span class="option-label">Glass</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="backsplash" value="marble">
+                            <span class="option-label">Marble</span>
+                        </label>
+                    </div>
+
+                    <div class="slider-control">
+                        <label>Backsplash Color</label>
+                        <div class="color-options">
+                            <button class="color-swatch" data-backsplash-color="#ffffff" style="background: #ffffff; border: 1px solid #ccc" title="White"></button>
+                            <button class="color-swatch" data-backsplash-color="#f0f0f0" style="background: #f0f0f0" title="Light Gray"></button>
+                            <button class="color-swatch" data-backsplash-color="#333333" style="background: #333333" title="Dark Gray"></button>
+                            <button class="color-swatch" data-backsplash-color="#e8d5b7" style="background: #e8d5b7" title="Cream"></button>
+                            <button class="color-swatch" data-backsplash-color="#87ceeb" style="background: #87ceeb" title="Sky Blue"></button>
+                            <button class="color-swatch" data-backsplash-color="#2d5016" style="background: #2d5016" title="Sage"></button>
+                        </div>
                     </div>
                 </section>
 
-                <section class="control-group">
-                    <h2>Actions</h2>
-                    <button class="btn btn-outline" id="resetBtn">Reset Design</button>
-                    <button class="btn btn-success" id="shareBtn">Share Demo</button>
+                <!-- Flooring Section -->
+                <section class="panel-section">
+                    <div class="section-header">
+                        <h4>🪵 Flooring</h4>
+                    </div>
+                    <div class="options-grid">
+                        <label class="option-card">
+                            <input type="radio" name="flooring" value="oak" checked>
+                            <span class="option-label">Oak Wood</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="flooring" value="walnut">
+                            <span class="option-label">Walnut</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="flooring" value="tile">
+                            <span class="option-label">Ceramic Tile</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="flooring" value="concrete">
+                            <span class="option-label">Polished Concrete</span>
+                        </label>
+                    </div>
                 </section>
-            </div>
+
+                <!-- Walls Section -->
+                <section class="panel-section">
+                    <div class="section-header">
+                        <h4>🎨 Walls</h4>
+                    </div>
+                    <div class="slider-control">
+                        <label>Wall Color</label>
+                        <div class="color-options">
+                            <button class="color-swatch" data-wall-color="#ffffff" style="background: #ffffff; border: 1px solid #ccc" title="White"></button>
+                            <button class="color-swatch" data-wall-color="#f5f5f5" style="background: #f5f5f5" title="Off-White"></button>
+                            <button class="color-swatch" data-wall-color="#e8dcc8" style="background: #e8dcc8" title="Cream"></button>
+                            <button class="color-swatch" data-wall-color="#d4d4d4" style="background: #d4d4d4" title="Light Gray"></button>
+                            <button class="color-swatch" data-wall-color="#b8b8b8" style="background: #b8b8b8" title="Gray"></button>
+                            <button class="color-swatch" data-wall-color="#f0e6d2" style="background: #f0e6d2" title="Beige"></button>
+                            <button class="color-swatch" data-wall-color="#e6f0f0" style="background: #e6f0f0" title="Light Blue"></button>
+                            <button class="color-swatch" data-wall-color="#f0e6f0" style="background: #f0e6f0" title="Light Lavender"></button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Lighting Section -->
+                <section class="panel-section">
+                    <div class="section-header">
+                        <h4>💡 Lighting</h4>
+                    </div>
+                    <div class="slider-group">
+                        <label for="brightness">Brightness</label>
+                        <input type="range" id="brightness" min="50" max="150" value="100" class="modern-slider">
+                        <span class="slider-display" id="brightnessDisplay">100%</span>
+                    </div>
+                    <div class="slider-group">
+                        <label for="contrast">Contrast</label>
+                        <input type="range" id="contrast" min="50" max="150" value="100" class="modern-slider">
+                        <span class="slider-display" id="contrastDisplay">100%</span>
+                    </div>
+                </section>
+
+                <!-- Advanced Options -->
+                <section class="panel-section">
+                    <div class="section-header">
+                        <h4>✨ Extras</h4>
+                    </div>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="islandToggle">
+                        <span>Add Kitchen Island</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="backsplashToggle" checked>
+                        <span>Show Backsplash</span>
+                    </label>
+                </section>
+
+                <!-- Actions -->
+                <div class="panel-actions">
+                    <button class="btn btn-outline-light" id="resetDesignBtn">Reset Design</button>
+                    <button class="btn btn-accent" id="aiSuggestBtn">✨ AI Suggestions</button>
+                </div>
+            </aside>
         </main>
 
-        <footer class="footer">
-            <p>&copy; 2025 Kitchen Design Studio. Design your perfect space.</p>
-        </footer>
+        <!-- AI Suggestions Modal -->
+        <div class="suggestion-modal" id="suggestionModal" style="display: none;">
+            <div class="suggestion-content">
+                <button class="close-btn" id="closeSuggestion">&times;</button>
+                <h3>Design Inspiration</h3>
+                <p id="suggestionText"></p>
+                <button class="btn btn-primary" id="applySuggestionBtn">Apply Suggestion</button>
+            </div>
+        </div>
     </div>
 
     <script src="js/app.js"></script>

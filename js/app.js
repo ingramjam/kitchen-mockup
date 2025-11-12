@@ -1,454 +1,788 @@
-// Kitchen Canvas Renderer
-class KitchenRenderer {
+// Luxe Kitchen Designer - Professional Canvas Renderer
+class LuxeKitchenRenderer {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
-        this.wallColor = '#f5f5f5';
-        this.texture = 'none';
-        this.textureOpacity = 1;
-        this.lightingIntensity = 1;
+        this.devicePixelRatio = window.devicePixelRatio || 1;
         
-        // Kitchen elements
-        this.kitchenElements = {
-            walls: { x: 50, y: 50, width: 700, height: 500 },
-            floorBase: { x: 50, y: 550, width: 700, height: 50 },
-            counterTop: { x: 200, y: 400, width: 400, height: 100 },
-            cabinets: [
-                { x: 100, y: 450, width: 100, height: 100, label: 'Cabinet 1' },
-                { x: 250, y: 450, width: 100, height: 100, label: 'Cabinet 2' },
-                { x: 400, y: 450, width: 100, height: 100, label: 'Cabinet 3' },
-                { x: 550, y: 450, width: 100, height: 100, label: 'Cabinet 4' }
-            ],
-            appliances: [
-                { x: 200, y: 350, width: 80, height: 90, label: 'Stove', color: '#444' },
-                { x: 350, y: 350, width: 80, height: 90, label: 'Oven', color: '#555' },
-                { x: 500, y: 350, width: 80, height: 90, label: 'Microwave', color: '#666' }
-            ]
+        // Initialize canvas with high DPI support
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+
+        // Design state
+        this.design = {
+            cabinetStyle: 'modern',
+            cabinetColor: '#2c2c2c',
+            countertop: 'granite',
+            backsplash: 'subway',
+            backsplashColor: '#ffffff',
+            flooring: 'oak',
+            wallColor: '#f5f5f5',
+            brightness: 100,
+            contrast: 100,
+            islandEnabled: false,
+            backsplashEnabled: true
+        };
+
+        // Material definitions
+        this.materials = {
+            granite: { colors: ['#3a3a3a', '#5a5a5a', '#7a7a7a'], name: 'Granite' },
+            quartz: { colors: ['#e8e8e8', '#d0d0d0', '#c0c0c0'], name: 'Quartz' },
+            marble: { colors: ['#f5f5f5', '#d0d0d0', '#b0a0a0'], name: 'Marble' },
+            wood: { colors: ['#8b6914', '#a0671a', '#6b4423'], name: 'Butcher Block' }
         };
     }
 
-    render() {
-        // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    resizeCanvas() {
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        this.canvas.width = rect.width * this.devicePixelRatio;
+        this.canvas.height = rect.height * this.devicePixelRatio;
+        this.ctx.scale(this.devicePixelRatio, this.devicePixelRatio);
+        this.render();
+    }
 
-        // Draw walls
-        this.drawWalls();
+    render() {
+        const width = this.canvas.width / this.devicePixelRatio;
+        const height = this.canvas.height / this.devicePixelRatio;
+
+        // Clear canvas
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(0, 0, width, height);
+
+        // Apply lighting
+        this.applyLighting(width, height);
+
+        // Draw background walls
+        this.drawWalls(width, height);
 
         // Draw floor
-        this.drawFloor();
+        this.drawFloor(width, height);
 
         // Draw cabinets
-        this.drawCabinets();
-
-        // Draw appliances
-        this.drawAppliances();
+        this.drawCabinets(width, height);
 
         // Draw countertop
-        this.drawCountertop();
-    }
+        this.drawCountertop(width, height);
 
-    drawWalls() {
-        const walls = this.kitchenElements.walls;
-
-        // Apply lighting intensity
-        const adjustedColor = this.adjustBrightness(this.wallColor, this.lightingIntensity);
-        this.ctx.fillStyle = adjustedColor;
-        this.ctx.fillRect(walls.x, walls.y, walls.width, walls.height);
-
-        // Apply texture if selected
-        if (this.texture !== 'none') {
-            this.applyTexture(walls.x, walls.y, walls.width, walls.height);
+        // Draw backsplash
+        if (this.design.backsplashEnabled) {
+            this.drawBacksplash(width, height);
         }
 
-        // Draw border
-        this.ctx.strokeStyle = '#999';
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(walls.x, walls.y, walls.width, walls.height);
+        // Draw appliances
+        this.drawAppliances(width, height);
+
+        // Draw island if enabled
+        if (this.design.islandEnabled) {
+            this.drawIsland(width, height);
+        }
+
+        // Draw accents
+        this.drawAccents(width, height);
     }
 
-    drawFloor() {
-        const floor = this.kitchenElements.floorBase;
-        
-        // Floor gradient
-        const gradient = this.ctx.createLinearGradient(floor.x, floor.y, floor.x, floor.y + floor.height);
-        gradient.addColorStop(0, '#d4af37');
-        gradient.addColorStop(1, '#aa8c2a');
-        
-        this.ctx.fillStyle = gradient;
-        this.ctx.fillRect(floor.x, floor.y, floor.width, floor.height);
+    applyLighting(width, height) {
+        const brightness = this.design.brightness / 100;
+        const contrast = this.design.contrast / 100;
 
-        // Floor tiles pattern
-        this.drawFloorTiles(floor.x, floor.y, floor.width, floor.height);
+        // Create gradient overlay for lighting
+        const lightingOverlay = this.ctx.createLinearGradient(0, 0, 0, height);
+        const alpha = Math.max(0, 0.02 - (brightness - 1) * 0.01);
+        lightingOverlay.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+        lightingOverlay.addColorStop(1, `rgba(0, 0, 0, ${Math.max(0, 0.05 - brightness * 0.02)})`);
+
+        this.ctx.fillStyle = lightingOverlay;
+        this.ctx.fillRect(0, 0, width, height);
     }
 
-    drawFloorTiles() {
-        const floor = this.kitchenElements.floorBase;
-        const tileSize = 50;
+    drawWalls(width, height) {
+        const wallColor = this.design.wallColor;
+        
+        // Adjust brightness/contrast
+        const adjusted = this.adjustColor(wallColor, this.design.brightness, this.design.contrast);
+        this.ctx.fillStyle = adjusted;
+        this.ctx.fillRect(0, 0, width, height);
 
-        this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+        // Subtle texture
+        this.drawWallTexture(width, height);
+    }
+
+    drawWallTexture(width, height) {
+        this.ctx.globalAlpha = 0.03;
+        this.ctx.fillStyle = '#000000';
+
+        for (let x = 0; x < width; x += 4) {
+            for (let y = 0; y < height; y += 4) {
+                if (Math.random() > 0.7) {
+                    this.ctx.fillRect(x, y, 2, 2);
+                }
+            }
+        }
+        this.ctx.globalAlpha = 1;
+    }
+
+    drawFloor(width, height) {
+        const floorY = height * 0.75;
+        const floorHeight = height * 0.25;
+
+        // Wood floor gradient
+        const floorGradient = this.ctx.createLinearGradient(0, floorY, 0, floorY + floorHeight);
+        
+        const woodColors = {
+            oak: ['#d4a574', '#c9956f', '#b8845f'],
+            walnut: ['#6b5344', '#5c3d2e', '#4a2c1a'],
+            tile: ['#9c9c9c', '#808080', '#666666'],
+            concrete: ['#8b8b8b', '#757575', '#5a5a5a']
+        };
+
+        const floorColor = woodColors[this.design.flooring][1];
+        const adjusted = this.adjustColor(floorColor, this.design.brightness, this.design.contrast);
+        this.ctx.fillStyle = adjusted;
+        this.ctx.fillRect(0, floorY, width, floorHeight);
+
+        // Floor pattern
+        this.drawFloorPattern(width, floorY, floorHeight);
+    }
+
+    drawFloorPattern(width, startY, height) {
+        const tileSize = 60;
+        this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
         this.ctx.lineWidth = 1;
 
-        for (let x = floor.x; x < floor.x + floor.width; x += tileSize) {
-            for (let y = floor.y; y < floor.y + floor.height; y += tileSize) {
+        for (let x = 0; x < width; x += tileSize) {
+            for (let y = startY; y < startY + height; y += tileSize) {
                 this.ctx.strokeRect(x, y, tileSize, tileSize);
             }
         }
     }
 
-    drawCabinets() {
-        const cabinets = this.kitchenElements.cabinets;
+    drawCabinets(width, height) {
+        const cabinetHeight = height * 0.35;
+        const cabinetY = height * 0.4;
+        const cabinetPadding = width * 0.1;
 
-        cabinets.forEach(cabinet => {
-            // Cabinet body
-            const cabinetColor = this.adjustBrightness('#8B4513', this.lightingIntensity);
-            this.ctx.fillStyle = cabinetColor;
-            this.ctx.fillRect(cabinet.x, cabinet.y, cabinet.width, cabinet.height);
+        // Left cabinets
+        this.drawCabinetRow(
+            cabinetPadding,
+            cabinetY,
+            width * 0.35,
+            cabinetHeight,
+            this.design.cabinetStyle,
+            this.design.cabinetColor
+        );
 
-            // Cabinet border/details
-            this.ctx.strokeStyle = '#654321';
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(cabinet.x, cabinet.y, cabinet.width, cabinet.height);
-
-            // Cabinet door handles
-            this.ctx.fillStyle = '#C0C0C0';
-            const handleX = cabinet.x + cabinet.width - 15;
-            const handleY = cabinet.y + cabinet.height / 2 - 5;
-            this.ctx.fillRect(handleX, handleY, 8, 10);
-            this.ctx.strokeStyle = '#888';
-            this.ctx.lineWidth = 1;
-            this.ctx.strokeRect(handleX, handleY, 8, 10);
-
-            // Door panel line
-            this.ctx.strokeStyle = '#654321';
-            this.ctx.lineWidth = 1;
-            this.ctx.beginPath();
-            this.ctx.moveTo(cabinet.x + cabinet.width / 2, cabinet.y + 5);
-            this.ctx.lineTo(cabinet.x + cabinet.width / 2, cabinet.y + cabinet.height - 5);
-            this.ctx.stroke();
-        });
+        // Right cabinets
+        this.drawCabinetRow(
+            width * 0.65 - cabinetPadding,
+            cabinetY,
+            width * 0.35,
+            cabinetHeight,
+            this.design.cabinetStyle,
+            this.design.cabinetColor
+        );
     }
 
-    drawAppliances() {
-        const appliances = this.kitchenElements.appliances;
+    drawCabinetRow(x, y, width, height, style, color) {
+        const cabinetCount = 3;
+        const cabinetWidth = (width - 10) / cabinetCount;
 
-        appliances.forEach(appliance => {
-            const adjustedColor = this.adjustBrightness(appliance.color, this.lightingIntensity);
-            this.ctx.fillStyle = adjustedColor;
-            this.ctx.fillRect(appliance.x, appliance.y, appliance.width, appliance.height);
-
-            // Appliance border
-            this.ctx.strokeStyle = '#222';
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(appliance.x, appliance.y, appliance.width, appliance.height);
-
-            // Appliance details (stove burners, oven door handle, etc)
-            if (appliance.label === 'Stove') {
-                this.drawStoveDetails(appliance);
-            } else if (appliance.label === 'Oven') {
-                this.drawOvenDetails(appliance);
-            }
-
-            // Label
-            this.ctx.fillStyle = '#fff';
-            this.ctx.font = 'bold 11px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(appliance.label, appliance.x + appliance.width / 2, appliance.y + appliance.height + 15);
-        });
-    }
-
-    drawStoveDetails(appliance) {
-        // Draw burner circles
-        const burnerRadius = 8;
-        const burners = [
-            { x: appliance.x + 15, y: appliance.y + 15 },
-            { x: appliance.x + 55, y: appliance.y + 15 },
-            { x: appliance.x + 15, y: appliance.y + 55 },
-            { x: appliance.x + 55, y: appliance.y + 55 }
-        ];
-
-        burners.forEach(burner => {
-            this.ctx.fillStyle = '#333';
-            this.ctx.beginPath();
-            this.ctx.arc(burner.x, burner.y, burnerRadius, 0, Math.PI * 2);
-            this.ctx.fill();
-
-            this.ctx.strokeStyle = '#111';
-            this.ctx.lineWidth = 1;
-            this.ctx.stroke();
-        });
-    }
-
-    drawOvenDetails(appliance) {
-        // Oven door
-        this.ctx.fillStyle = '#1a1a1a';
-        this.ctx.fillRect(appliance.x + 5, appliance.y + 30, appliance.width - 10, appliance.height - 40);
-
-        // Window
-        this.ctx.fillStyle = '#ffeb3b';
-        this.ctx.fillRect(appliance.x + 15, appliance.y + 40, appliance.width - 30, 30);
-    }
-
-    drawCountertop() {
-        const counter = this.kitchenElements.counterTop;
-        
-        // Countertop surface
-        const gradient = this.ctx.createLinearGradient(counter.x, counter.y, counter.x, counter.y + counter.height);
-        gradient.addColorStop(0, '#e8d5b7');
-        gradient.addColorStop(1, '#d4c5a0');
-        
-        this.ctx.fillStyle = gradient;
-        this.ctx.fillRect(counter.x, counter.y, counter.width, counter.height);
-
-        // Counter edge shadow
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-        this.ctx.fillRect(counter.x, counter.y + counter.height - 3, counter.width, 3);
-
-        // Countertop border
-        this.ctx.strokeStyle = '#999';
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeRect(counter.x, counter.y, counter.width, counter.height);
-    }
-
-    applyTexture(x, y, width, height) {
-        switch (this.texture) {
-            case 'wood':
-                this.drawWoodTexture(x, y, width, height);
-                break;
-            case 'tile':
-                this.drawTileTexture(x, y, width, height);
-                break;
-            case 'marble':
-                this.drawMarbleTexture(x, y, width, height);
-                break;
-            case 'paint':
-                this.drawPaintTexture(x, y, width, height);
-                break;
+        for (let i = 0; i < cabinetCount; i++) {
+            const cabinetX = x + (i * (cabinetWidth + 5));
+            this.drawSingleCabinet(cabinetX, y, cabinetWidth, height, style, color);
         }
     }
 
-    drawWoodTexture(x, y, width, height) {
-        this.ctx.globalAlpha = this.textureOpacity;
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+    drawSingleCabinet(x, y, width, height, style, color) {
+        const adjusted = this.adjustColor(color, this.design.brightness, this.design.contrast);
+        
+        // Cabinet body
+        this.ctx.fillStyle = adjusted;
+        this.ctx.fillRect(x, y, width, height);
 
-        for (let i = 0; i < height; i += 2) {
-            if (Math.random() > 0.5) {
-                this.ctx.fillRect(x, y + i, width, 1);
+        // Cabinet border
+        this.ctx.strokeStyle = this.darkenColor(adjusted, 0.2);
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(x, y, width, height);
+
+        // Cabinet doors
+        const doorMargin = width * 0.05;
+        const doorWidth = (width - doorMargin * 3) / 2;
+        const doorHeight = height * 0.7;
+
+        // Left door
+        this.drawCabinetDoor(x + doorMargin, y + doorMargin, doorWidth, doorHeight, style, adjusted);
+
+        // Right door
+        this.drawCabinetDoor(x + doorMargin * 2 + doorWidth, y + doorMargin, doorWidth, doorHeight, style, adjusted);
+
+        // Bottom panel
+        const panelY = y + doorHeight + doorMargin * 2;
+        this.ctx.fillStyle = this.darkenColor(adjusted, 0.1);
+        this.ctx.fillRect(x + doorMargin, panelY, width - doorMargin * 2, height - panelY + y);
+
+        // Handles
+        this.drawCabinetHandle(x + doorMargin + doorWidth / 2, y + height / 3);
+        this.drawCabinetHandle(x + doorMargin * 2 + doorWidth + doorWidth / 2, y + height / 3);
+    }
+
+    drawCabinetDoor(x, y, width, height, style, baseColor) {
+        // Door panel
+        this.ctx.fillStyle = baseColor;
+        this.ctx.fillRect(x, y, width, height);
+
+        // Door frame
+        this.ctx.strokeStyle = this.darkenColor(baseColor, 0.15);
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(x, y, width, height);
+
+        // Door detail line
+        if (style === 'modern') {
+            this.ctx.strokeStyle = this.darkenColor(baseColor, 0.08);
+            this.ctx.lineWidth = 1;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + width / 2, y);
+            this.ctx.lineTo(x + width / 2, y + height);
+            this.ctx.stroke();
+        } else if (style === 'traditional') {
+            // Panel frame
+            this.ctx.strokeStyle = this.darkenColor(baseColor, 0.1);
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(x + width * 0.1, y + height * 0.1, width * 0.8, height * 0.8);
+        }
+    }
+
+    drawCabinetHandle(x, y) {
+        this.ctx.fillStyle = '#c0c0c0';
+        this.ctx.fillRect(x - 3, y - 5, 6, 10);
+        this.ctx.strokeStyle = '#888';
+        this.ctx.lineWidth = 0.5;
+        this.ctx.strokeRect(x - 3, y - 5, 6, 10);
+    }
+
+    drawCountertop(width, height) {
+        const counterY = height * 0.75;
+        const counterHeight = height * 0.03;
+        const counterX = width * 0.1;
+        const counterWidth = width * 0.8;
+
+        // Countertop material
+        const material = this.materials[this.design.countertop];
+        const color = material.colors[1];
+        const adjusted = this.adjustColor(color, this.design.brightness, this.design.contrast);
+
+        this.ctx.fillStyle = adjusted;
+        this.ctx.fillRect(counterX, counterY, counterWidth, counterHeight);
+
+        // Countertop shadow/depth
+        this.ctx.fillStyle = this.darkenColor(adjusted, 0.2);
+        this.ctx.fillRect(counterX, counterY + counterHeight, counterWidth, 2);
+
+        // Surface texture
+        this.drawCountertopTexture(counterX, counterY, counterWidth, counterHeight);
+    }
+
+    drawCountertopTexture(x, y, width, height) {
+        const material = this.design.countertop;
+        this.ctx.globalAlpha = 0.15;
+
+        if (material === 'granite') {
+            this.ctx.fillStyle = '#000000';
+            for (let i = 0; i < 200; i++) {
+                this.ctx.fillRect(
+                    x + Math.random() * width,
+                    y + Math.random() * height,
+                    Math.random() * 2,
+                    Math.random() * 2
+                );
+            }
+        } else if (material === 'marble') {
+            this.ctx.strokeStyle = '#888888';
+            this.ctx.lineWidth = 0.5;
+            for (let i = 0; i < 5; i++) {
+                const startX = x + Math.random() * width;
+                const startY = y + Math.random() * height;
+                this.ctx.beginPath();
+                this.ctx.moveTo(startX, startY);
+                this.ctx.lineTo(startX + Math.random() * 100, startY + Math.random() * 20);
+                this.ctx.stroke();
             }
         }
 
         this.ctx.globalAlpha = 1;
     }
 
-    drawTileTexture(x, y, width, height) {
-        this.ctx.globalAlpha = this.textureOpacity;
-        const tileSize = 40;
+    drawBacksplash(width, height) {
+        const backsplashHeight = height * 0.15;
+        const backsplashY = height * 0.4;
+        const backsplashX = width * 0.1;
+        const backsplashWidth = width * 0.8;
 
-        this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+        const adjusted = this.adjustColor(this.design.backsplashColor, this.design.brightness, this.design.contrast);
+        this.ctx.fillStyle = adjusted;
+        this.ctx.fillRect(backsplashX, backsplashY, backsplashWidth, backsplashHeight);
+
+        // Pattern based on type
+        this.drawBacksplashPattern(backsplashX, backsplashY, backsplashWidth, backsplashHeight);
+    }
+
+    drawBacksplashPattern(x, y, width, height) {
+        const type = this.design.backsplash;
+
+        if (type === 'subway') {
+            this.drawSubwayTiles(x, y, width, height);
+        } else if (type === 'herringbone') {
+            this.drawHerringbonePattern(x, y, width, height);
+        } else if (type === 'glass') {
+            this.drawGlassTiles(x, y, width, height);
+        } else if (type === 'marble') {
+            this.drawMarbleTiles(x, y, width, height);
+        }
+    }
+
+    drawSubwayTiles(x, y, width, height) {
+        const tileWidth = 30;
+        const tileHeight = 20;
+        const groutSize = 1;
+
+        this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+        this.ctx.lineWidth = groutSize;
+
+        for (let tx = x; tx < x + width; tx += tileWidth + groutSize) {
+            for (let ty = y; ty < y + height; ty += tileHeight + groutSize) {
+                this.ctx.strokeRect(tx, ty, tileWidth, tileHeight);
+            }
+        }
+    }
+
+    drawHerringbonePattern(x, y, width, height) {
+        this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+        this.ctx.lineWidth = 1;
+
+        const tileWidth = 25;
+        const tileHeight = 15;
+
+        for (let row = 0; row < height / tileHeight; row++) {
+            const offset = row % 2 === 0 ? 0 : tileWidth / 2;
+            for (let col = 0; col < width / tileWidth + 2; col++) {
+                const tx = x + offset + col * tileWidth;
+                const ty = y + row * tileHeight;
+                this.ctx.save();
+                this.ctx.translate(tx + tileWidth / 2, ty + tileHeight / 2);
+                this.ctx.rotate(Math.PI / 4);
+                this.ctx.strokeRect(-tileWidth / 2, -tileHeight / 2, tileWidth, tileHeight);
+                this.ctx.restore();
+            }
+        }
+    }
+
+    drawGlassTiles(x, y, width, height) {
+        this.ctx.globalAlpha = 0.1;
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(x, y, width, height);
+
+        this.ctx.globalAlpha = 0.3;
+        this.ctx.strokeStyle = '#ffffff';
         this.ctx.lineWidth = 2;
 
+        const tileSize = 30;
+        for (let tx = x; tx < x + width; tx += tileSize) {
+            for (let ty = y; ty < y + height; ty += tileSize) {
+                this.ctx.strokeRect(tx, ty, tileSize, tileSize);
+            }
+        }
+        this.ctx.globalAlpha = 1;
+    }
+
+    drawMarbleTiles(x, y, width, height) {
+        this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+        this.ctx.lineWidth = 1;
+
+        const tileSize = 40;
         for (let tx = x; tx < x + width; tx += tileSize) {
             for (let ty = y; ty < y + height; ty += tileSize) {
                 this.ctx.strokeRect(tx, ty, tileSize, tileSize);
 
-                // Grout shadow
-                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-                this.ctx.fillRect(tx, ty + tileSize - 1, tileSize, 1);
-                this.ctx.fillRect(tx + tileSize - 1, ty, 1, tileSize);
+                // Vein pattern
+                this.ctx.globalAlpha = 0.1;
+                for (let i = 0; i < 3; i++) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(tx + Math.random() * tileSize, ty);
+                    this.ctx.lineTo(tx + Math.random() * tileSize, ty + tileSize);
+                    this.ctx.stroke();
+                }
+                this.ctx.globalAlpha = 1;
             }
         }
-
-        this.ctx.globalAlpha = 1;
     }
 
-    drawMarbleTexture(x, y, width, height) {
-        this.ctx.globalAlpha = this.textureOpacity;
+    drawAppliances(width, height) {
+        const applianceY = height * 0.45;
+        const applianceHeight = height * 0.25;
+        const spacing = width * 0.1;
 
-        // Random veining
-        for (let i = 0; i < 15; i++) {
-            const startX = x + Math.random() * width;
-            const startY = y + Math.random() * height;
-            const veinLength = Math.random() * 100 + 50;
-            const angle = Math.random() * Math.PI * 2;
+        // Stove
+        this.drawStove(spacing, applianceY, width * 0.2, applianceHeight);
 
-            this.ctx.strokeStyle = `rgba(0, 0, 0, ${Math.random() * 0.1})`;
-            this.ctx.lineWidth = Math.random() * 2 + 1;
+        // Refrigerator
+        this.drawRefrigerator(spacing * 3 + width * 0.2, applianceY, width * 0.2, applianceHeight);
+
+        // Dishwasher
+        this.drawDishwasher(spacing * 5 + width * 0.4, applianceY, width * 0.15, applianceHeight);
+    }
+
+    drawStove(x, y, width, height) {
+        const color = '#333333';
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(x, y, width, height);
+
+        // Burners
+        const burnerRadius = width * 0.08;
+        const burners = [
+            { x: x + width * 0.2, y: y + height * 0.15 },
+            { x: x + width * 0.6, y: y + height * 0.15 },
+            { x: x + width * 0.2, y: y + height * 0.45 },
+            { x: x + width * 0.6, y: y + height * 0.45 }
+        ];
+
+        burners.forEach(burner => {
+            this.ctx.fillStyle = '#111111';
             this.ctx.beginPath();
-            this.ctx.moveTo(startX, startY);
-            this.ctx.lineTo(startX + Math.cos(angle) * veinLength, startY + Math.sin(angle) * veinLength);
-            this.ctx.stroke();
-        }
+            this.ctx.arc(burner.x, burner.y, burnerRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
+    }
 
+    drawRefrigerator(x, y, width, height) {
+        const color = '#4a4a4a';
+        const adjusted = this.adjustColor(color, this.design.brightness, this.design.contrast);
+        this.ctx.fillStyle = adjusted;
+        this.ctx.fillRect(x, y, width, height);
+
+        // Door
+        this.ctx.strokeStyle = '#888';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(x + 2, y + 2, width - 4, height - 4);
+
+        // Handle
+        this.ctx.fillStyle = '#888';
+        this.ctx.fillRect(x + width - 8, y + height / 2 - 10, 4, 20);
+    }
+
+    drawDishwasher(x, y, width, height) {
+        const color = '#5a5a5a';
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(x, y, width, height);
+
+        // Controls
+        this.ctx.fillStyle = '#888';
+        for (let i = 0; i < 3; i++) {
+            this.ctx.beginPath();
+            this.ctx.arc(x + width * 0.3 + i * width * 0.2, y + height * 0.2, 3, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+    }
+
+    drawIsland(width, height) {
+        const islandWidth = width * 0.3;
+        const islandHeight = height * 0.15;
+        const islandX = (width - islandWidth) / 2;
+        const islandY = height * 0.65;
+
+        // Island base
+        const adjusted = this.adjustColor(this.design.cabinetColor, this.design.brightness, this.design.contrast);
+        this.ctx.fillStyle = adjusted;
+        this.ctx.fillRect(islandX, islandY, islandWidth, islandHeight);
+
+        // Island border
+        this.ctx.strokeStyle = this.darkenColor(adjusted, 0.2);
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(islandX, islandY, islandWidth, islandHeight);
+
+        // Island countertop
+        const material = this.materials[this.design.countertop];
+        const color = material.colors[1];
+        const adjColor = this.adjustColor(color, this.design.brightness, this.design.contrast);
+        this.ctx.fillStyle = adjColor;
+        this.ctx.fillRect(islandX - 10, islandY - 5, islandWidth + 20, 5);
+    }
+
+    drawAccents(width, height) {
+        // Light gradient for depth
+        const accent = this.ctx.createRadialGradient(width / 2, height / 3, 0, width / 2, height / 2, width);
+        accent.addColorStop(0, 'rgba(255, 255, 255, 0.05)');
+        accent.addColorStop(1, 'rgba(0, 0, 0, 0.02)');
+
+        this.ctx.globalAlpha = 0.3;
+        this.ctx.fillStyle = accent;
+        this.ctx.fillRect(0, 0, width, height);
         this.ctx.globalAlpha = 1;
     }
 
-    drawPaintTexture(x, y, width, height) {
-        this.ctx.globalAlpha = this.textureOpacity;
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
+    // Utility methods
+    adjustColor(color, brightness, contrast) {
+        const rgb = this.hexToRgb(color);
+        const b = brightness / 100;
+        const c = contrast / 100;
 
-        // Subtle stipple pattern
-        for (let i = 0; i < width * height / 200; i++) {
-            const px = x + Math.random() * width;
-            const py = y + Math.random() * height;
-            const size = Math.random() * 2 + 1;
-            this.ctx.fillRect(px, py, size, size);
-        }
+        const adjusted = {
+            r: Math.min(255, Math.max(0, (rgb.r - 128) * c + 128 * b)),
+            g: Math.min(255, Math.max(0, (rgb.g - 128) * c + 128 * b)),
+            b: Math.min(255, Math.max(0, (rgb.b - 128) * c + 128 * b))
+        };
 
-        this.ctx.globalAlpha = 1;
+        return `rgb(${Math.round(adjusted.r)}, ${Math.round(adjusted.g)}, ${Math.round(adjusted.b)})`;
     }
 
-    adjustBrightness(color, intensity) {
-        // Convert hex to RGB, adjust brightness, convert back
-        const num = parseInt(color.replace('#', ''), 16);
-        const r = (num >> 16) & 255;
-        const g = (num >> 8) & 255;
-        const b = num & 255;
-
-        const newR = Math.min(255, Math.floor(r * intensity));
-        const newG = Math.min(255, Math.floor(g * intensity));
-        const newB = Math.min(255, Math.floor(b * intensity));
-
-        return `rgb(${newR}, ${newG}, ${newB})`;
+    darkenColor(color, amount) {
+        const rgb = this.parseRgb(color);
+        return `rgb(${Math.max(0, rgb.r - rgb.r * amount)}, ${Math.max(0, rgb.g - rgb.g * amount)}, ${Math.max(0, rgb.b - rgb.b * amount)})`;
     }
 
-    setWallColor(color) {
-        this.wallColor = color;
-        this.render();
+    hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : { r: 0, g: 0, b: 0 };
     }
 
-    setTexture(texture) {
-        this.texture = texture;
-        this.render();
-    }
-
-    setTextureOpacity(opacity) {
-        this.textureOpacity = opacity / 100;
-        this.render();
-    }
-
-    setLightingIntensity(intensity) {
-        this.lightingIntensity = intensity / 100;
-        this.render();
+    parseRgb(rgb) {
+        const match = rgb.match(/\d+/g);
+        return { r: parseInt(match[0]), g: parseInt(match[1]), b: parseInt(match[2]) };
     }
 
     exportDesign() {
         const link = document.createElement('a');
-        link.href = this.canvas.toDataURL('image/png');
+        link.href = this.canvas.toDataURL('image/png', 1);
         link.download = `kitchen-design-${new Date().getTime()}.png`;
         link.click();
     }
 
     resetDesign() {
-        this.wallColor = '#f5f5f5';
-        this.texture = 'none';
-        this.textureOpacity = 1;
-        this.lightingIntensity = 1;
-
-        // Reset UI
-        document.getElementById('wallColorPicker').value = '#f5f5f5';
-        document.getElementById('colorValue').textContent = '#f5f5f5';
-        document.getElementById('textureSelect').value = 'none';
-        document.getElementById('textureOpacity').value = 100;
-        document.getElementById('opacityValue').textContent = '100%';
-        document.getElementById('lightingIntensity').value = 100;
-        document.getElementById('brightnessValue').textContent = '100%';
-
+        this.design = {
+            cabinetStyle: 'modern',
+            cabinetColor: '#2c2c2c',
+            countertop: 'granite',
+            backsplash: 'subway',
+            backsplashColor: '#ffffff',
+            flooring: 'oak',
+            wallColor: '#f5f5f5',
+            brightness: 100,
+            contrast: 100,
+            islandEnabled: false,
+            backsplashEnabled: true
+        };
         this.render();
     }
 }
 
-// AI Design Helper
-class AIDesignHelper {
+// AI Design Suggestions
+class AIDesignAssistant {
     constructor() {
         this.suggestions = [
-            "Try a soft sage green (#9fbc8f) for a modern, calming aesthetic with warm wood tones.",
-            "Consider a crisp white (#ffffff) with marble tile texture for a luxury contemporary look.",
-            "Warm cream (#f5deb3) with wood grain texture creates a cozy, traditional kitchen feel.",
-            "A light gray (#d3d3d3) with subway tile texture offers a clean, Scandinavian design.",
-            "Soft blue (#add8e6) with matte paint texture provides a coastal, refreshing atmosphere.",
-            "Warm beige (#f5e6d3) works beautifully with natural lighting for a timeless design."
+            {
+                title: "Modern Minimalist",
+                description: "Create a sleek, contemporary look with charcoal cabinets (#2c2c2c), quartz countertops, and subway tile backsplash. Pair with white walls for maximum contrast and clean lines.",
+                settings: {
+                    cabinetStyle: 'modern',
+                    cabinetColor: '#2c2c2c',
+                    countertop: 'quartz',
+                    backsplash: 'subway',
+                    backsplashColor: '#ffffff',
+                    wallColor: '#ffffff'
+                }
+            },
+            {
+                title: "Warm Traditional",
+                description: "Embrace elegance with natural oak cabinets, marble countertops, and herringbone backsplash. Combine with cream walls to create a timeless, sophisticated kitchen.",
+                settings: {
+                    cabinetStyle: 'traditional',
+                    cabinetColor: '#8b7355',
+                    countertop: 'marble',
+                    backsplash: 'herringbone',
+                    backsplashColor: '#e8d5b7',
+                    wallColor: '#f5ead6'
+                }
+            },
+            {
+                title: "Contemporary Luxe",
+                description: "Achieve sophistication with dark espresso cabinets, granite countertops, and glass backsplash. Use soft gray walls with enhanced lighting for a premium feel.",
+                settings: {
+                    cabinetStyle: 'contemporary',
+                    cabinetColor: '#5c4033',
+                    countertop: 'granite',
+                    backsplash: 'glass',
+                    backsplashColor: '#e8e8e8',
+                    wallColor: '#d4d4d4',
+                    brightness: 110
+                }
+            },
+            {
+                title: "Organic Natural",
+                description: "Go natural with walnut wood cabinets, butcher block countertops, and stone backsplash. Combine with warm beige walls for an earthy, inviting atmosphere.",
+                settings: {
+                    cabinetStyle: 'transitional',
+                    cabinetColor: '#6b5344',
+                    countertop: 'wood',
+                    backsplash: 'marble',
+                    backsplashColor: '#f0e6d2',
+                    wallColor: '#f0e6d2',
+                    flooring: 'walnut'
+                }
+            }
         ];
     }
 
-    getSuggestions() {
+    getRandomSuggestion() {
         return this.suggestions[Math.floor(Math.random() * this.suggestions.length)];
     }
 }
 
-// Initialize Application
+// Initialize App
 let renderer;
-let aiHelper;
+let aiAssistant;
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderer = new KitchenRenderer('kitchenCanvas');
-    aiHelper = new AIDesignHelper();
+    renderer = new LuxeKitchenRenderer('kitchenCanvas');
+    aiAssistant = new AIDesignAssistant();
 
-    // Initial render
-    renderer.render();
-
-    // Event Listeners - Color Picker
-    const wallColorPicker = document.getElementById('wallColorPicker');
-    const colorValue = document.getElementById('colorValue');
-
-    wallColorPicker.addEventListener('input', (e) => {
-        const color = e.target.value;
-        colorValue.textContent = color;
-        renderer.setWallColor(color);
+    // Cabinet Style
+    document.querySelectorAll('input[name="cabinetStyle"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            renderer.design.cabinetStyle = e.target.value;
+            renderer.render();
+        });
     });
 
-    // Event Listeners - Texture Select
-    const textureSelect = document.getElementById('textureSelect');
-    textureSelect.addEventListener('change', (e) => {
-        renderer.setTexture(e.target.value);
+    // Cabinet Colors
+    document.querySelectorAll('[data-cabinet-color]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('[data-cabinet-color]').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            renderer.design.cabinetColor = e.target.dataset.cabinetColor;
+            renderer.render();
+        });
     });
 
-    // Event Listeners - Texture Opacity
-    const textureOpacity = document.getElementById('textureOpacity');
-    const opacityValue = document.getElementById('opacityValue');
-
-    textureOpacity.addEventListener('input', (e) => {
-        const value = e.target.value;
-        opacityValue.textContent = value + '%';
-        renderer.setTextureOpacity(value);
+    // Countertop
+    document.querySelectorAll('input[name="countertop"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            renderer.design.countertop = e.target.value;
+            renderer.render();
+        });
     });
 
-    // Event Listeners - Lighting Intensity
-    const lightingIntensity = document.getElementById('lightingIntensity');
-    const brightnessValue = document.getElementById('brightnessValue');
-
-    lightingIntensity.addEventListener('input', (e) => {
-        const value = e.target.value;
-        brightnessValue.textContent = value + '%';
-        renderer.setLightingIntensity(value);
+    // Backsplash Type
+    document.querySelectorAll('input[name="backsplash"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            renderer.design.backsplash = e.target.value;
+            renderer.render();
+        });
     });
 
-    // Event Listeners - Buttons
+    // Backsplash Colors
+    document.querySelectorAll('[data-backsplash-color]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('[data-backsplash-color]').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            renderer.design.backsplashColor = e.target.dataset.backsplashColor;
+            renderer.render();
+        });
+    });
+
+    // Flooring
+    document.querySelectorAll('input[name="flooring"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            renderer.design.flooring = e.target.value;
+            renderer.render();
+        });
+    });
+
+    // Wall Colors
+    document.querySelectorAll('[data-wall-color]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('[data-wall-color]').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            renderer.design.wallColor = e.target.dataset.wallColor;
+            renderer.render();
+        });
+    });
+
+    // Brightness
+    document.getElementById('brightness').addEventListener('input', (e) => {
+        renderer.design.brightness = parseInt(e.target.value);
+        document.getElementById('brightnessDisplay').textContent = e.target.value + '%';
+        renderer.render();
+    });
+
+    // Contrast
+    document.getElementById('contrast').addEventListener('input', (e) => {
+        renderer.design.contrast = parseInt(e.target.value);
+        document.getElementById('contrastDisplay').textContent = e.target.value + '%';
+        renderer.render();
+    });
+
+    // Island Toggle
+    document.getElementById('islandToggle').addEventListener('change', (e) => {
+        renderer.design.islandEnabled = e.target.checked;
+        renderer.render();
+    });
+
+    // Backsplash Toggle
+    document.getElementById('backsplashToggle').addEventListener('change', (e) => {
+        renderer.design.backsplashEnabled = e.target.checked;
+        renderer.render();
+    });
+
+    // Export
     document.getElementById('exportBtn').addEventListener('click', () => {
         renderer.exportDesign();
     });
 
-    document.getElementById('resetBtn').addEventListener('click', () => {
-        renderer.resetDesign();
-    });
-
-    document.getElementById('aiSuggestBtn').addEventListener('click', () => {
-        const suggestion = aiHelper.getSuggestions();
-        const suggestionDiv = document.getElementById('aiSuggestions');
-        const suggestionText = document.getElementById('suggestionText');
-
-        suggestionText.textContent = suggestion;
-        suggestionDiv.style.display = 'block';
-    });
-
+    // Share
     document.getElementById('shareBtn').addEventListener('click', () => {
         const url = window.location.href;
         if (navigator.share) {
-            navigator.share({
-                title: 'My Kitchen Design',
-                text: 'Check out my custom kitchen design!',
-                url: url
-            });
+            navigator.share({ title: 'My Kitchen Design', url });
         } else {
-            alert('Share URL: ' + url);
+            alert('Design URL: ' + url);
         }
     });
+
+    // Reset
+    document.getElementById('resetDesignBtn').addEventListener('click', () => {
+        renderer.resetDesign();
+        // Reset UI
+        document.querySelectorAll('input[type="radio"]').forEach(r => {
+            if (renderer.design[r.name]) r.checked = (r.value === renderer.design[r.name]);
+        });
+    });
+
+    // AI Suggestions
+    document.getElementById('aiSuggestBtn').addEventListener('click', () => {
+        const suggestion = aiAssistant.getRandomSuggestion();
+        document.getElementById('suggestionText').textContent = suggestion.description;
+        document.getElementById('suggestionModal').style.display = 'flex';
+
+        // Apply suggestion
+        document.getElementById('applySuggestionBtn').onclick = () => {
+            Object.assign(renderer.design, suggestion.settings);
+            renderer.render();
+            document.getElementById('suggestionModal').style.display = 'none';
+        };
+    });
+
+    document.getElementById('closeSuggestion').addEventListener('click', () => {
+        document.getElementById('suggestionModal').style.display = 'none';
+    });
+
+    document.getElementById('resetViewBtn').addEventListener('click', () => {
+        renderer.render();
+    });
+
+    // Set active color swatches
+    document.querySelector('[data-cabinet-color="#2c2c2c"]').classList.add('active');
+    document.querySelector('[data-backsplash-color="#ffffff"]').classList.add('active');
+    document.querySelector('[data-wall-color="#f5f5f5"]').classList.add('active');
 });
