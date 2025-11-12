@@ -1,4 +1,8 @@
 // Luxe Kitchen Designer - Professional Canvas Renderer
+// Global renderer and AI assistant
+let renderer;
+let aiAssistant;
+
 class LuxeKitchenRenderer {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
@@ -639,13 +643,11 @@ class AIDesignAssistant {
     }
 }
 
-// Initialize App
-let renderer;
-let aiAssistant;
-
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing renderer...');
     renderer = new LuxeKitchenRenderer('kitchenCanvas');
     aiAssistant = new AIDesignAssistant();
+    console.log('Renderer initialized successfully');
 
     // Cabinet Style
     document.querySelectorAll('input[name="cabinetStyle"]').forEach(radio => {
